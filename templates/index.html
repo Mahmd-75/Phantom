@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 40px 0 30px 0;">
+    <h1 style="font-size: 3rem; color: #ff0033; letter-spacing: 8px; margin-bottom: 10px; text-shadow: 0 0 30px #ff003366;">PHANTOM</h1>
+    <p style="color: #333; letter-spacing: 3px; font-size: 0.8rem;">OSINT INTELLIGENCE DASHBOARD / Made by Mahmd</p>
+</div>
+
+<!-- Stats Cards -->
+{% if stats.total > 0 %}
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
+
+    <div class="card" style="text-align: center; padding: 20px;">
+        <div style="font-size: 2rem; color: #ff0033; font-weight: bold; text-shadow: 0 0 20px #ff003344;">{{ stats.total }}</div>
+        <div style="color: #333; font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px;">TOTAL SCANS</div>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 20px;">
+        <div style="font-size: 2rem; color: #ff0033; font-weight: bold; text-shadow: 0 0 20px #ff003344;">{{ stats.by_type.get('domain', 0) }}</div>
+        <div style="color: #333; font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px;">DOMAINS</div>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 20px;">
+        <div style="font-size: 2rem; color: #ff0033; font-weight: bold; text-shadow: 0 0 20px #ff003344;">{{ stats.by_type.get('ip', 0) + stats.by_type.get('shodan', 0) }}</div>
+        <div style="color: #333; font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px;">IPs SCANNED</div>
+    </div>
+
+    <div class="card" style="text-align: center; padding: 20px;">
+        <div style="font-size: 2rem; font-weight: bold; text-shadow: 0 0 20px #ff003344;
+            color: {% if stats.avg_risk >= 70 %}#ff0033{% elif stats.avg_risk >= 45 %}#ff6600{% elif stats.avg_risk >= 25 %}#ffcc00{% else %}#00ff44{% endif %};">
+            {{ stats.avg_risk }}
+        </div>
+        <div style="color: #333; font-size: 0.7rem; letter-spacing: 3px; margin-top: 5px;">AVG RISK</div>
+    </div>
+
+</div>
+
+<!-- Risk Distribution + Top Techs -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px;">
+
+    <!-- Risk Distribution -->
+    <div class="card">
+        <div class="card-title">📊 Risk Distribution</div>
+        {% set risk_colors = {'LOW': '#00ff44', 'MEDIUM': '#ffcc00', 'HIGH': '#ff6600', 'CRITICAL': '#ff0033'} %}
+        {% for level, count in stats.risk_levels.items() %}
+        {% if count > 0 %}
+        <div style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: {{ risk_colors[level] }}; font-size: 0.75rem; letter-spacing: 2px;">{{ level }}</span>
+                <span style="color: #333; font-size: 0.75rem;">{{ count }}</span>
+            </div>
+            <div style="height: 4px; background: #111; border-radius: 2px;">
+                <div style="
+                    height: 100%;
+                    width: {{ (count / stats.total * 100) | int }}%;
+                    background: {{ risk_colors[level] }};
+                    border-radius: 2px;
+                    box-shadow: 0 0 8px {{ risk_colors[level] }}66;
+                "></div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Top Technologies -->
+    <div class="card">
+        <div class="card-title">⚡ Top Technologies</div>
+        {% if stats.top_techs %}
+            {% for tech, count in stats.top_techs %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #111;">
+                <span style="color: #888; font-size: 0.85rem;">{{ tech }}</span>
+                <span class="badge badge-blue">{{ count }}x</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: #333; font-size: 0.8rem;">Aucune technologie détectée pour l'instant</p>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Recent Scans -->
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-title">🕐 Scans récents</div>
+    {% for item in stats.recent %}
+    <div style="
+        padding: 10px;
+        border-bottom: 1px solid #111;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        transition: background 0.2s;
+    "
+    onmouseover="this.style.background='#ff003808'"
+    onmouseout="this.style.background='transparent'"
+    onclick="window.location.href='/report/{{ item.id }}'"
+    >
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span>{% if item.type == 'domain' %}🌐{% elif item.type == 'ip' %}📡{% elif item.type == 'username' %}👤{% elif item.type == 'email' %}📧{% elif item.type == 'shodan' %}🔎{% endif %}</span>
+            <div>
+                <div style="color: #ccc; font-size: 0.85rem;">{{ item.target }}</div>
+                <div style="color: #333; font-size: 0.72rem; margin-top: 2px;">{{ item.timestamp }}</div>
+            </div>
+        </div>
+        <span class="badge badge-red">{{ item.type | upper }}</span>
+    </div>
+    {% endfor %}
+    {% if stats.total > 5 %}
+    <div style="text-align: center; padding: 10px;">
+        <a href="/history" style="color: #ff0033; font-size: 0.75rem; text-decoration: none; letter-spacing: 2px;">VIEW ALL {{ stats.total }} SCANS →</a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Scan Form -->
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-title">🔍 Nouvelle cible</div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="tab-btn active" onclick="setType('domain')" id="btn-domain">🌐 Domain</button>
+        <button class="tab-btn" onclick="setType('ip')" id="btn-ip">📡 IP</button>
+        <button class="tab-btn" onclick="setType('username')" id="btn-username">👤 Username</button>
+        <button class="tab-btn" onclick="setType('email')" id="btn-email">📧 Email</button>
+        <button class="tab-btn" onclick="setType('shodan')" id="btn-shodan">🔎 Shodan</button>
+    </div>
+
+    <input
+        type="text"
+        id="target-input"
+        placeholder="ex: google.com"
+        style="
+            width: 100%;
+            padding: 14px 18px;
+            background: #080808;
+            border: 1px solid #1a1a1a;
+            border-radius: 2px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        "
+        onfocus="this.style.borderColor='#ff003366'"
+        onblur="this.style.borderColor='#1a1a1a'"
+    />
+
+    <button
+        onclick="launchScan()"
+        style="
+            width: 100%;
+            padding: 14px;
+            background: #ff0033;
+            color: #ffffff;
+            border: none;
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px #ff003344;
+        "
+        onmouseover="this.style.background='#cc0022'; this.style.boxShadow='0 0 30px #ff003366'"
+        onmouseout="this.style.background='#ff0033'; this.style.boxShadow='0 0 20px #ff003344'"
+    >
+        SCAN
+    </button>
+
+    <div id="error-msg" style="display:none; margin-top: 15px; color: #ff0033; font-size: 0.85rem; letter-spacing: 1px;"></div>
+</div>
+
+<style>
+    .tab-btn {
+        padding: 8px 18px;
+        background: #080808;
+        border: 1px solid #1a1a1a;
+        border-radius: 2px;
+        color: #555;
+        font-family: 'Courier New', monospace;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        letter-spacing: 1px;
+    }
+
+    .tab-btn:hover {
+        border-color: #ff003366;
+        color: #ff0033;
+    }
+
+    .tab-btn.active {
+        border-color: #ff0033;
+        color: #ff0033;
+        background: #ff003311;
+        box-shadow: 0 0 10px #ff003322;
+    }
+</style>
+
+<script>
+    let currentType = 'domain';
+
+    function setType(type) {
+        currentType = type;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + type).classList.add('active');
+
+        const placeholders = {
+            'domain': 'ex: google.com',
+            'ip': 'ex: 8.8.8.8',
+            'username': 'ex: johndoe',
+            'email': 'ex: john@gmail.com',
+            'shodan': 'ex: 8.8.8.8'
+        };
+        document.getElementById('target-input').placeholder = placeholders[type];
+    }
+
+    async function launchScan() {
+        const target = document.getElementById('target-input').value.trim();
+        const errorDiv = document.getElementById('error-msg');
+
+        if (!target) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Veuillez entrer une cible.';
+            return;
+        }
+
+        errorDiv.style.display = 'none';
+        showLoader(target);
+
+        const formData = new FormData();
+        formData.append('scan_type', currentType);
+        formData.append('target', target);
+
+        try {
+            const response = await fetch('/scan', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else if (data.error) {
+                hideLoader();
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = data.error;
+            }
+        } catch (e) {
+            hideLoader();
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = 'Erreur de connexion.';
+        }
+    }
+
+    document.getElementById('target-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') launchScan();
+    });
+</script>
+{% endblock %}

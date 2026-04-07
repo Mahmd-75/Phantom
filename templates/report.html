@@ -1,0 +1,650 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if report.data.risk %}
+<div class="card" style="margin-bottom: 25px; border-color: {{ report.data.risk.color }}44;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+
+        <!-- Score cercle -->
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <div style="
+                width: 80px; height: 80px;
+                border-radius: 50%;
+                border: 3px solid {{ report.data.risk.color }};
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                box-shadow: 0 0 20px {{ report.data.risk.color }}44;
+            ">
+                <span style="color: {{ report.data.risk.color }}; font-size: 1.4rem; font-weight: bold;">{{ report.data.risk.score }}</span>
+                <span style="color: #333; font-size: 0.6rem; letter-spacing: 1px;">/100</span>
+            </div>
+            <div>
+                <div style="color: {{ report.data.risk.color }}; font-size: 1rem; letter-spacing: 4px; font-weight: bold;">{{ report.data.risk.level }}</div>
+                <div style="color: #333; font-size: 0.75rem; margin-top: 4px; letter-spacing: 1px;">RISK SCORE</div>
+            </div>
+        </div>
+
+        <!-- Findings -->
+        <div style="flex: 1; min-width: 200px;">
+            {% if report.data.risk.findings %}
+            <div style="margin-bottom: 10px;">
+                {% for finding in report.data.risk.findings %}
+                <div style="color: #ff4444; font-size: 0.78rem; padding: 2px 0; letter-spacing: 0.5px;">
+                    ⚠ {{ finding }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if report.data.risk.positive %}
+            <div>
+                {% for pos in report.data.risk.positive %}
+                <div style="color: #00ff44; font-size: 0.78rem; padding: 2px 0; letter-spacing: 0.5px;">
+                    ✓ {{ pos }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endif %}
+<div style="margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <p style="color: #333; font-size: 0.75rem; letter-spacing: 3px;">RAPPORT D'ANALYSE</p>
+        <h2 style="color: #ff0033; font-size: 1.5rem; letter-spacing: 3px; text-shadow: 0 0 20px #ff003355;">{{ report.target }}</h2>
+        <span class="badge badge-red">{{ report.type | upper }}</span>
+        <span style="color: #333; font-size: 0.75rem; margin-left: 10px;">{{ report.timestamp }}</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="/" style="
+            padding: 10px 20px;
+            border: 1px solid #1a1a1a;
+            color: #555;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        "
+        onmouseover="this.style.background='#ffffff11'"
+        onmouseout="this.style.background='transparent'"
+        >← NEW SCAN</a>
+    </div>
+</div>
+
+<!-- DOMAIN REPORT -->
+{% if report.type == 'domain' %}
+
+    {% if report.data.whois %}
+    <div class="card">
+        <div class="card-title">📋 WHOIS</div>
+        {% if report.data.whois.error is defined %}
+            <p style="color: #ff0033;">{{ report.data.whois.error }}</p>
+        {% else %}
+            <table style="width: 100%; border-collapse: collapse;">
+                {% for key, value in report.data.whois.items() %}
+                <tr style="border-bottom: 1px solid #111;">
+                    <td style="padding: 8px; color: #444; width: 200px; font-size: 0.85rem;">{{ key }}</td>
+                    <td style="padding: 8px; color: #ccc; font-size: 0.85rem;">{{ value }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if report.data.dns %}
+    <div class="card">
+        <div class="card-title">🌐 DNS Records</div>
+        {% for record_type, values in report.data.dns.items() %}
+            <div style="margin-bottom: 12px;">
+                <span class="badge badge-red">{{ record_type }}</span>
+                {% if values %}
+                    {% for v in values %}
+                        <span style="display: block; padding: 4px 0 4px 20px; color: #888; font-size: 0.85rem;">→ {{ v }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span style="color: #333; font-size: 0.85rem; margin-left: 10px;">Aucun enregistrement</span>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.data.subdomains %}
+    <div class="card">
+        <div class="card-title">🔎 Sous-domaines (crt.sh)</div>
+        {% if report.data.subdomains is iterable and report.data.subdomains is not mapping %}
+            {% for sub in report.data.subdomains %}
+                <span class="badge badge-green">{{ sub }}</span>
+            {% endfor %}
+        {% else %}
+            <p style="color: #ff0033;">{{ report.data.subdomains }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if report.data.ip %}
+    <div class="card">
+        <div class="card-title">📍 IP Resolved</div>
+        <span class="badge badge-red">{{ report.data.ip }}</span>
+    </div>
+    {% endif %}
+
+    {% if report.data.headers %}
+    <div class="card">
+        <div class="card-title">📡 Headers HTTP</div>
+        {% if report.data.headers.error is defined %}
+            <p style="color: #ff0033;">{{ report.data.headers.error }}</p>
+        {% else %}
+            <table style="width: 100%; border-collapse: collapse;">
+                {% for key, value in report.data.headers.items() %}
+                <tr style="border-bottom: 1px solid #111;">
+                    <td style="padding: 6px; color: #444; width: 250px; font-size: 0.8rem;">{{ key }}</td>
+                    <td style="padding: 6px; color: #888; font-size: 0.8rem; word-break: break-all;">{{ value }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% endif %}
+    </div>
+    {% endif %}
+{% if report.data.ssl %}
+<div class="card">
+    <div class="card-title">🔒 SSL / TLS Analysis</div>
+
+    {% if report.data.ssl.error is defined %}
+        <p style="color: #ff0033;">{{ report.data.ssl.error }}</p>
+    {% else %}
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444; width: 200px;">Issuer</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.ssl.issuer }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Common Name</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.ssl.common_name }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">TLS Version</td>
+                <td style="padding: 8px;">
+                    {% if report.data.ssl.tls_secure %}
+                        <span class="badge badge-green">{{ report.data.ssl.tls_version }}</span>
+                    {% else %}
+                        <span class="badge badge-red">{{ report.data.ssl.tls_version }} — INSECURE</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Expires</td>
+                <td style="padding: 8px;">
+                    {% if report.data.ssl.expired %}
+                        <span style="color: #ff0033;">{{ report.data.ssl.not_after }} — EXPIRED</span>
+                    {% elif report.data.ssl.expiring_soon %}
+                        <span style="color: #ffcc00;">{{ report.data.ssl.not_after }} — {{ report.data.ssl.days_left }} days left</span>
+                    {% else %}
+                        <span style="color: #00ff44;">{{ report.data.ssl.not_after }} — {{ report.data.ssl.days_left }} days left</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Cipher</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.ssl.cipher_name }} ({{ report.data.ssl.cipher_bits }} bits)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Wildcard</td>
+                <td style="padding: 8px;">
+                    {% if report.data.ssl.wildcard %}
+                        <span class="badge badge-red">⚠ Yes</span>
+                    {% else %}
+                        <span class="badge badge-green">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">SSL Score</td>
+                <td style="padding: 8px;">
+                    <span style="color: {% if report.data.ssl.ssl_score >= 80 %}#00ff44{% elif report.data.ssl.ssl_score >= 50 %}#ffcc00{% else %}#ff0033{% endif %}; font-size: 1.2rem; font-weight: bold;">
+                        {{ report.data.ssl.ssl_score }}/100
+                    </span>
+                </td>
+            </tr>
+        </table>
+
+        {% if report.data.ssl.sans %}
+        <div>
+            <div style="color: #333; font-size: 0.75rem; letter-spacing: 2px; margin-bottom: 8px;">SUBJECT ALT NAMES ({{ report.data.ssl.san_count }})</div>
+            {% for san in report.data.ssl.sans %}
+                <span class="badge badge-blue">{{ san }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endif %}
+{% if report.data.spoofing %}
+<div class="card" style="{% if report.data.spoofing.spoofable %}border-color: #ff003344;{% endif %}">
+    <div class="card-title">📧 Email Spoofing Analysis</div>
+
+    <!-- Verdict -->
+    <div style="
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        background: {% if report.data.spoofing.risk_level == 'CRITICAL' %}#ff003311{% elif report.data.spoofing.risk_level == 'HIGH' %}#ff660011{% elif report.data.spoofing.risk_level == 'MEDIUM' %}#ffcc0011{% else %}#00ff4411{% endif %};
+        border: 1px solid {% if report.data.spoofing.risk_level == 'CRITICAL' %}#ff003333{% elif report.data.spoofing.risk_level == 'HIGH' %}#ff660033{% elif report.data.spoofing.risk_level == 'MEDIUM' %}#ffcc0033{% else %}#00ff4433{% endif %};
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    ">
+        <span style="font-size: 1.5rem;">{% if report.data.spoofing.spoofable %}⚠{% else %}✓{% endif %}</span>
+        <div>
+            <div style="color: {% if report.data.spoofing.risk_level == 'CRITICAL' %}#ff0033{% elif report.data.spoofing.risk_level == 'HIGH' %}#ff6600{% elif report.data.spoofing.risk_level == 'MEDIUM' %}#ffcc00{% else %}#00ff44{% endif %}; font-weight: bold; letter-spacing: 2px;">
+                {{ report.data.spoofing.risk_level }}
+            </div>
+            <div style="color: #888; font-size: 0.85rem; margin-top: 3px;">{{ report.data.spoofing.verdict }}</div>
+        </div>
+    </div>
+
+    <!-- SPF / DMARC / DKIM -->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+        <tr style="border-bottom: 1px solid #111;">
+            <td style="padding: 8px; color: #444; width: 100px;">SPF</td>
+            <td style="padding: 8px;">
+                {% if report.data.spoofing.spf.found %}
+                    {% if report.data.spoofing.spf.strict %}
+                        <span class="badge badge-green">strict (-all)</span>
+                    {% elif report.data.spoofing.spf.soft %}
+                        <span class="badge" style="background:#ffcc0022;color:#ffcc00;border:1px solid #ffcc0044;">soft (~all)</span>
+                    {% else %}
+                        <span class="badge badge-red">weak</span>
+                    {% endif %}
+                    <span style="color: #333; font-size: 0.75rem; margin-left: 8px;">{{ report.data.spoofing.spf.record[:60] }}</span>
+                {% else %}
+                    <span class="badge badge-red">ABSENT</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr style="border-bottom: 1px solid #111;">
+            <td style="padding: 8px; color: #444;">DMARC</td>
+            <td style="padding: 8px;">
+                {% if report.data.spoofing.dmarc.found %}
+                    {% if report.data.spoofing.dmarc.policy == 'reject' %}
+                        <span class="badge badge-green">reject</span>
+                    {% elif report.data.spoofing.dmarc.policy == 'quarantine' %}
+                        <span class="badge" style="background:#ffcc0022;color:#ffcc00;border:1px solid #ffcc0044;">quarantine</span>
+                    {% else %}
+                        <span class="badge badge-red">none</span>
+                    {% endif %}
+                {% else %}
+                    <span class="badge badge-red">ABSENT</span>
+                {% endif %}
+            </td>
+        </tr>
+        <tr style="border-bottom: 1px solid #111;">
+            <td style="padding: 8px; color: #444;">DKIM</td>
+            <td style="padding: 8px;">
+                {% if report.data.spoofing.dkim_hint %}
+                    <span class="badge badge-green">found ({{ report.data.spoofing.dkim_hint }})</span>
+                {% else %}
+                    <span class="badge" style="background:#ffcc0022;color:#ffcc00;border:1px solid #ffcc0044;">not detected</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <!-- Details -->
+    {% if report.data.spoofing.details %}
+    <div>
+        {% for color, detail in report.data.spoofing.details %}
+        <div style="
+            color: {% if color == 'green' %}#00ff44{% elif color == 'red' %}#ff0033{% else %}#ffcc00{% endif %};
+            font-size: 0.78rem;
+            padding: 3px 0;
+            letter-spacing: 0.5px;
+        ">
+            {% if color == 'green' %}✓{% elif color == 'red' %}⚠{% else %}→{% endif %} {{ detail }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% if report.data.technologies and report.data.technologies.technologies %}
+<div class="card">
+    <div class="card-title">⚡ Technologies détectées — {{ report.data.technologies.technologies|length }}</div>
+
+    {% set categories = {
+        'Servers': ['Nginx', 'Apache', 'IIS', 'LiteSpeed', 'Caddy'],
+        'CDN / Protection': ['Cloudflare', 'Fastly', 'Akamai', 'AWS CloudFront', 'Sucuri'],
+        'Languages': ['PHP', 'ASP.NET', 'Ruby on Rails'],
+        'CMS': ['WordPress', 'Joomla', 'Drupal', 'Shopify', 'Wix', 'Squarespace'],
+        'JS Frameworks': ['React', 'Vue.js', 'Angular', 'jQuery', 'Next.js', 'Nuxt.js'],
+        'Analytics': ['Google Analytics', 'Google Tag Manager', 'Hotjar', 'Intercom'],
+        'CSS / UI': ['Bootstrap', 'Tailwind CSS', 'Font Awesome'],
+        'Security': ['reCAPTCHA', 'Cloudflare Turnstile']
+    } %}
+
+    {% for category, techs in categories.items() %}
+        {% set found = [] %}
+        {% for tech in techs %}
+            {% if tech in report.data.technologies.technologies %}
+                {% set _ = found.append(tech) %}
+            {% endif %}
+        {% endfor %}
+        {% if found %}
+        <div style="margin-bottom: 12px;">
+            <span style="color: #333; font-size: 0.75rem; letter-spacing: 2px; display: block; margin-bottom: 6px;">{{ category }}</span>
+            {% for tech in found %}
+                <span class="badge badge-blue">{{ tech }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    {% if report.data.technologies.final_url %}
+    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #111;">
+        <span style="color: #333; font-size: 0.75rem;">Final URL: </span>
+        <span style="color: #555; font-size: 0.75rem;">{{ report.data.technologies.final_url }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- IP REPORT -->
+{% elif report.type == 'ip' %}
+
+    {% if report.data.geolocation %}
+<div class="card">
+    <div class="card-title">📍 Géolocalisation</div>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+        {% for key, value in report.data.geolocation.items() %}
+        {% if key not in ['lat', 'lon'] %}
+        <tr style="border-bottom: 1px solid #111;">
+            <td style="padding: 8px; color: #444; width: 200px; font-size: 0.85rem;">{{ key }}</td>
+            <td style="padding: 8px; color: #ccc; font-size: 0.85rem;">{{ value }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </table>
+
+    {% if report.data.geolocation.lat and report.data.geolocation.lon %}
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+    <div id="map" style="
+        height: 300px;
+        border-radius: 4px;
+        border: 1px solid #1a1a1a;
+        margin-top: 10px;
+        z-index: 1;
+    "></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var lat = {{ report.data.geolocation.lat }};
+            var lon = {{ report.data.geolocation.lon }};
+            var city = "{{ report.data.geolocation.city }}";
+            var country = "{{ report.data.geolocation.country }}";
+
+            var map = L.map('map', {
+                center: [lat, lon],
+                zoom: 10,
+                zoomControl: true
+            });
+
+            // Tuiles sombres
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Marker rouge custom
+            var redIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:14px;height:14px;background:#ff0033;border-radius:50%;box-shadow:0 0 15px #ff0033,0 0 30px #ff003366;border:2px solid #fff;"></div>',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            });
+
+            L.marker([lat, lon], {icon: redIcon})
+                .addTo(map)
+                .bindPopup(`
+                    <div style="font-family: 'Courier New'; font-size: 12px; color: #333;">
+                        <strong>${city}</strong><br>
+                        ${country}<br>
+                        <span style="color: #ff0033;">${lat}, ${lon}</span>
+                    </div>
+                `)
+                .openPopup();
+
+            // Cercle de zone
+            L.circle([lat, lon], {
+                color: '#ff0033',
+                fillColor: '#ff003311',
+                fillOpacity: 0.3,
+                radius: 5000
+            }).addTo(map);
+        });
+    </script>
+    {% endif %}
+</div>
+{% endif %}
+
+    {% if report.data.reverse_dns %}
+    <div class="card">
+        <div class="card-title">🔄 Reverse DNS</div>
+        <p style="color: #888;">{{ report.data.reverse_dns }}</p>
+    </div>
+    {% endif %}
+
+    {% if report.data.network %}
+    <div class="card">
+        <div class="card-title">🌐 Infos Réseau</div>
+        <table style="width: 100%; border-collapse: collapse;">
+            {% for key, value in report.data.network.items() %}
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444; width: 200px; font-size: 0.85rem;">{{ key }}</td>
+                <td style="padding: 8px; color: #ccc; font-size: 0.85rem;">{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+<!-- USERNAME REPORT -->
+{% elif report.type == 'username' %}
+
+    <div class="card">
+        <div class="card-title">📊 Résumé</div>
+        <p style="font-size: 2rem; color: #ff0033; text-shadow: 0 0 20px #ff003355;">
+            {{ report.data.summary.found_count }}
+            <span style="font-size: 1rem; color: #333;">/ {{ report.data.summary.total_checked }} plateformes trouvées</span>
+        </p>
+    </div>
+
+    {% if report.data.found %}
+    <div class="card">
+        <div class="card-title">✅ Profils trouvés</div>
+        {% for item in report.data.found %}
+        <div style="padding: 10px 0; border-bottom: 1px solid #111; display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #ff0033;">{{ item.platform }}</span>
+            <a href="{{ item.url }}" target="_blank" style="color: #4488ff; font-size: 0.8rem; text-decoration: none;">
+                {{ item.url }} →
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.data.not_found %}
+    <div class="card">
+        <div class="card-title">❌ Non trouvés</div>
+        {% for platform in report.data.not_found %}
+            <span class="badge badge-red">{{ platform }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+<!-- EMAIL REPORT -->
+{% elif report.type == 'email' %}
+
+    <div class="card">
+        <div class="card-title">📧 Format & Validation</div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444; width: 200px;">Format valide</td>
+                <td style="padding: 8px;">
+                    {% if report.data.format.valid %}
+                        <span class="badge badge-green">✓ Valide</span>
+                    {% else %}
+                        <span class="badge badge-red">✗ Invalide</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Provider</td>
+                <td style="padding: 8px; color: #888;">{{ report.data.provider }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Délivrable</td>
+                <td style="padding: 8px;">
+                    {% if report.data.email_deliverable %}
+                        <span class="badge badge-green">✓ Oui</span>
+                    {% else %}
+                        <span class="badge badge-red">✗ Non</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {% if report.data.mx_records %}
+    <div class="card">
+        <div class="card-title">📮 MX Records</div>
+        {% for mx in report.data.mx_records %}
+            <span class="badge badge-red">{{ mx }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.data.hibp %}
+    <div class="card">
+        <div class="card-title">🔐 HaveIBeenPwned</div>
+        {% if report.data.hibp.pwned is defined %}
+            {% if report.data.hibp.pwned %}
+                <p style="color: #ff0033; margin-bottom: 10px;">⚠ Email trouvé dans {{ report.data.hibp.breach_count }} leak(s)</p>
+                {% for breach in report.data.hibp.breaches %}
+                    <span class="badge badge-red">{{ breach }}</span>
+                {% endfor %}
+            {% else %}
+                <p style="color: #00ff44;">✓ Aucun leak détecté</p>
+            {% endif %}
+        {% else %}
+            <p style="color: #333;">{{ report.data.hibp.status }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+<!-- SHODAN REPORT -->
+{% elif report.type == 'shodan' %}
+
+    {% if report.data.error is defined %}
+    <div class="card">
+        <div class="card-title">⚠ Erreur</div>
+        <p style="color: #ff0033;">{{ report.data.error }}</p>
+    </div>
+    {% else %}
+
+    <div class="card">
+        <div class="card-title">📡 Informations Shodan</div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444; width: 200px;">Organisation</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.org }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">OS</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.os }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Pays</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.country }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Ville</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.city }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">ISP</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.isp }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #444;">Dernière mise à jour</td>
+                <td style="padding: 8px; color: #ccc;">{{ report.data.last_update }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if report.data.ports %}
+    <div class="card">
+        <div class="card-title">🔓 Ports ouverts — {{ report.data.total_ports }} trouvés</div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #1a1a1a;">
+                <th style="padding: 8px; color: #333; text-align: left; font-size: 0.75rem;">PORT</th>
+                <th style="padding: 8px; color: #333; text-align: left; font-size: 0.75rem;">PROTOCOLE</th>
+                <th style="padding: 8px; color: #333; text-align: left; font-size: 0.75rem;">SERVICE</th>
+                <th style="padding: 8px; color: #333; text-align: left; font-size: 0.75rem;">PRODUIT</th>
+            </tr>
+            {% for port in report.data.ports %}
+            <tr style="border-bottom: 1px solid #111;">
+                <td style="padding: 8px; color: #ff0033; font-weight: bold;">{{ port.port }}</td>
+                <td style="padding: 8px; color: #555; font-size: 0.85rem;">{{ port.protocol }}</td>
+                <td style="padding: 8px; color: #888; font-size: 0.85rem;">{{ port.service }}</td>
+                <td style="padding: 8px; color: #aaa; font-size: 0.85rem;">
+                    {{ port.product }}
+                    {% if port.version %}
+                        <span style="color: #555;">v{{ port.version }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+    {% if report.data.vulns %}
+    <div class="card" style="border-color: #ff003344;">
+        <div class="card-title" style="color: #ff0033;">⚠ CVEs Détectés — {{ report.data.vulns|length }}</div>
+        {% for vuln in report.data.vulns %}
+            <span class="badge badge-red">{{ vuln }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.data.hostnames %}
+    <div class="card">
+        <div class="card-title">🌐 Hostnames</div>
+        {% for hostname in report.data.hostnames %}
+            <span class="badge badge-blue">{{ hostname }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if report.data.tags %}
+    <div class="card">
+        <div class="card-title">🏷 Tags Shodan</div>
+        {% for tag in report.data.tags %}
+            <span class="badge badge-red">{{ tag }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+{% endif %}
+
+{% endblock %}

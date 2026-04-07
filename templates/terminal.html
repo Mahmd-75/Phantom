@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <p style="color: #333; font-size: 0.75rem; letter-spacing: 3px;">LIVE SCAN</p>
+        <h2 style="color: #ff0033; font-size: 1.5rem; letter-spacing: 3px; text-shadow: 0 0 20px #ff003355;">{{ target }}</h2>
+        <span class="badge badge-red">{{ scan_type | upper }}</span>
+    </div>
+    <a href="/" style="
+        padding: 10px 20px;
+        border: 1px solid #1a1a1a;
+        color: #555;
+        text-decoration: none;
+        border-radius: 2px;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        transition: all 0.3s;
+    "
+    onmouseover="this.style.color='#ff0033'; this.style.borderColor='#ff003366'"
+    onmouseout="this.style.color='#555'; this.style.borderColor='#1a1a1a'"
+    >← ABORT</a>
+</div>
+
+<div style="
+    background: #050505;
+    border: 1px solid #1a1a1a;
+    border-left: 3px solid #ff0033;
+    border-radius: 4px;
+    padding: 25px;
+    min-height: 400px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    position: relative;
+    box-shadow: 0 0 30px #ff003311;
+">
+    <!-- Header terminal -->
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #111;
+    ">
+        <div style="width: 10px; height: 10px; border-radius: 50%; background: #ff0033; box-shadow: 0 0 8px #ff0033; animation: blink 1s infinite;"></div>
+        <span style="color: #333; font-size: 0.75rem; letter-spacing: 3px;">PHANTOM TERMINAL v1.0</span>
+        <span style="color: #222; font-size: 0.75rem; margin-left: auto;">{{ target }}</span>
+    </div>
+
+    <!-- Zone de logs -->
+    <div id="terminal-output" style="line-height: 2;"></div>
+
+    <!-- Curseur clignotant -->
+    <div id="cursor" style="
+        display: inline-block;
+        width: 8px;
+        height: 14px;
+        background: #ff0033;
+        margin-left: 4px;
+        animation: blink 1s infinite;
+        vertical-align: middle;
+    "></div>
+</div>
+
+<!-- Barre de progression -->
+<div style="margin-top: 15px; height: 2px; background: #111; border-radius: 2px; overflow: hidden;">
+    <div id="progress-bar" style="
+        height: 100%;
+        width: 0%;
+        background: #ff0033;
+        box-shadow: 0 0 10px #ff0033;
+        transition: width 0.3s ease;
+    "></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-top: 8px;">
+    <span id="status-text" style="color: #333; font-size: 0.75rem; letter-spacing: 2px;">INITIALIZING...</span>
+    <span id="line-count" style="color: #222; font-size: 0.75rem;">0 lines</span>
+</div>
+
+<style>
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+
+    .log-line {
+        animation: fadeIn 0.2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateX(-5px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+</style>
+
+<script>
+    const target = "{{ target }}";
+    const scanType = "{{ scan_type }}";
+    const output = document.getElementById('terminal-output');
+    const progressBar = document.getElementById('progress-bar');
+    const statusText = document.getElementById('status-text');
+    const lineCount = document.getElementById('line-count');
+    const cursor = document.getElementById('cursor');
+
+    let lines = 0;
+    let progress = 0;
+
+    const colors = {
+        'green': '#00ff44',
+        'red': '#ff0033',
+        'yellow': '#ffcc00',
+        'cyan': '#00ccff',
+        'white': '#cccccc'
+    };
+
+    function addLine(msg, color) {
+        if (msg === '') {
+            output.innerHTML += '<br>';
+            return;
+        }
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.style.color = colors[color] || '#cccccc';
+        line.textContent = msg;
+        output.appendChild(line);
+        lines++;
+        lineCount.textContent = lines + ' lines';
+        output.scrollTop = output.scrollHeight;
+
+        // Update progress
+        progress = Math.min(progress + 3, 90);
+        progressBar.style.width = progress + '%';
+    }
+
+    // Lance le stream SSE
+    const evtSource = new EventSource(`/stream?target=${encodeURIComponent(target)}&type=${scanType}`);
+
+    statusText.textContent = 'SCANNING...';
+
+    evtSource.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+
+        if (data.type === 'log') {
+            addLine(data.msg, data.color);
+        } else if (data.type === 'done') {
+            // Scan terminé
+            progressBar.style.width = '100%';
+            statusText.textContent = 'SCAN COMPLETE';
+            cursor.style.background = '#00ff44';
+            evtSource.close();
+
+            // Redirige vers le rapport après 1.5s
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 1500);
+        }
+    };
+
+    evtSource.onerror = function() {
+        statusText.textContent = 'CONNECTION ERROR';
+        statusText.style.color = '#ff0033';
+        evtSource.close();
+    };
+</script>
+{% endblock %}

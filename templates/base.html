@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phantom — OSINT Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --red: #ff0033;
+            --red-dim: #ff003366;
+            --red-glow: #ff003322;
+            --bg: #080808;
+            --bg2: #0f0f0f;
+            --border: #1a1a1a;
+            --text: #cccccc;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        /* Scanlines effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.15) 2px,
+                rgba(0,0,0,0.15) 4px
+            );
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Fond rouge subtil */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 10% 50%, #ff003308 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 10%, #ff003305 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            border-bottom: 1px solid var(--red-dim);
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 10;
+            background: #080808ee;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--red);
+            letter-spacing: 6px;
+            text-shadow: 0 0 20px var(--red-dim);
+            animation: glitch 4s infinite;
+        }
+
+        .logo span { color: #ffffff; }
+
+        @keyframes glitch {
+            0%, 90%, 100% {
+                text-shadow: 0 0 20px var(--red-dim);
+                transform: translate(0);
+            }
+            92% {
+                text-shadow: -2px 0 #ff0033, 2px 0 #ffffff;
+                transform: translate(-1px, 0);
+            }
+            94% {
+                text-shadow: 2px 0 #ff0033, -2px 0 #ffffff;
+                transform: translate(1px, 0);
+            }
+            96% {
+                text-shadow: 0 0 20px var(--red-dim);
+                transform: translate(0);
+            }
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            color: #ff0033;
+            letter-spacing: 2px;
+        }
+
+        .nav-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: #ff0033;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px #ff0033; }
+            50% { opacity: 0.2; box-shadow: none; }
+        }
+
+        .nav-links a {
+            color: #555;
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .nav-links a:hover {
+            color: var(--red);
+            text-shadow: 0 0 10px var(--red-dim);
+        }
+
+        main {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.4s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--red);
+            box-shadow: 0 0 10px var(--red-dim);
+        }
+
+        .card:hover {
+            border-color: var(--red-dim);
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-title {
+            color: var(--red);
+            font-size: 0.75rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            margin: 3px;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .badge-green {
+            background: #00ff4422;
+            color: #00ff44;
+            border: 1px solid #00ff4444;
+        }
+
+        .badge-red {
+            background: #ff003322;
+            color: #ff0033;
+            border: 1px solid #ff003344;
+        }
+
+        .badge-blue {
+            background: #0044ff22;
+            color: #4488ff;
+            border: 1px solid #0044ff44;
+        }
+
+        /* Loader */
+        #loader-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #080808ee;
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 25px;
+            backdrop-filter: blur(6px);
+        }
+
+        #loader-overlay.active { display: flex; }
+
+        .loader-box {
+            border: 1px solid var(--red-dim);
+            padding: 40px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 0 40px var(--red-glow);
+        }
+
+        .loader-ring {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #1a1a1a;
+            border-top: 2px solid var(--red);
+            border-right: 2px solid var(--red);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            box-shadow: 0 0 15px var(--red-dim);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-text {
+            color: var(--red);
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            animation: blink 1s infinite;
+        }
+
+        .loader-target {
+            color: #555;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #222;
+            font-size: 0.7rem;
+            border-top: 1px solid #111;
+            margin-top: 40px;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-overlay">
+        <div class="loader-box">
+            <div class="loader-ring"></div>
+            <div class="loader-text">SCANNING TARGET...</div>
+            <div class="loader-target" id="loader-target-text"></div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="logo">PH<span>ANTOM</span></div>
+        <div class="nav-status">SYSTEM ONLINE</div>
+        <div class="nav-links">
+            <a href="/">HOME</a>
+            <a href="/history">HISTORY</a>
+            <a href="https://github.com/Mahmd-75/Phantom" target="_blank">GITHUB</a>
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        PHANTOM v1.0 — OSINT INTELLIGENCE — FOR EDUCATIONAL PURPOSES ONLY
+    </footer>
+
+    <script>
+        function showLoader(target) {
+            document.getElementById('loader-overlay').classList.add('active');
+            if (target) {
+                document.getElementById('loader-target-text').textContent = '> ' + target;
+            }
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').classList.remove('active');
+        }
+    </script>
+
+</body>
+</html>

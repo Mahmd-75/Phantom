@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <p style="color: #333; font-size: 0.75rem; letter-spacing: 3px;">JOURNAL D'ACTIVITÉ</p>
+        <h2 style="color: #ff0033; font-size: 1.5rem; letter-spacing: 4px; text-shadow: 0 0 20px #ff003355;">HISTORY</h2>
+    </div>
+    <a href="/" style="
+        padding: 10px 20px;
+        border: 1px solid #ff003366;
+        color: #ff0033;
+        text-decoration: none;
+        border-radius: 2px;
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+        transition: all 0.3s;
+    "
+    onmouseover="this.style.background='#ff003311'"
+    onmouseout="this.style.background='transparent'"
+    >← NEW SCAN</a>
+</div>
+
+<div class="card">
+    <div class="card-title">📋 Scans récents — {{ history|length }} entrée(s)</div>
+
+    {% if history %}
+        {% for item in history %}
+        <div style="
+            padding: 15px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+            cursor: pointer;
+        "
+        onmouseover="this.style.background='#ff003308'"
+        onmouseout="this.style.background='transparent'"
+        onclick="window.location.href='/report/{{ item.id }}'"
+        >
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- Icone selon le type -->
+                <span style="font-size: 1.2rem;">
+                    {% if item.type == 'domain' %}🌐
+                    {% elif item.type == 'ip' %}📡
+                    {% elif item.type == 'username' %}👤
+                    {% elif item.type == 'email' %}📧
+                    {% endif %}
+                </span>
+                <div>
+                    <div style="color: #e0e0e0; font-size: 0.9rem; letter-spacing: 1px;">{{ item.target }}</div>
+                    <div style="color: #333; font-size: 0.75rem; margin-top: 3px;">{{ item.timestamp }}</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="badge badge-red">{{ item.type | upper }}</span>
+                <span style="color: #333; font-size: 0.8rem; letter-spacing: 1px;">{{ item.id }} →</span>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align: center; padding: 40px; color: #333; letter-spacing: 2px;">
+            <div style="font-size: 2rem; margin-bottom: 15px;">👻</div>
+            <div>AUCUN SCAN EFFECTUÉ</div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
