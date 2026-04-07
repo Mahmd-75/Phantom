@@ -114,7 +114,7 @@ The author is not responsible for any misuse.
 
 ## 👤 Author
 
-**Mahmoud El Shetewi** — Cybersecurity student | Pentest & Offensive Security
+**Mahmoud El SHETEWI** — Cybersecurity student | Pentest & Offensive Security
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Mahmoud%20El%20Shetewi-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/mahmoud-el-shetewi-2a3027331/)
 [![GitHub](https://img.shields.io/badge/GitHub-Mahmd--75-red?style=flat-square&logo=github)](https://github.com/Mahmd-75)
