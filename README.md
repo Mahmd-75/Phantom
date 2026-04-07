@@ -85,4 +85,4 @@ For educational purposes only. Use responsibly and legally.
 
 **Mahmd-75** — Cybersecurity student | Pentest & Offensive Security
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/mahmoud-el-shetewi)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](h[ttps://linkedin.com/in/mahmoud-el-shetewi](https://www.linkedin.com/in/mahmoud-el-shetewi-2a3027331/))
