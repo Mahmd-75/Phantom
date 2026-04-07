@@ -9,128 +9,80 @@
 
 ---
 
-## What is Phantom?
+## 🔍 What is Phantom?
 
-Phantom is an OSINT Intelligence Dashboard that automates the passive reconnaissance phase of a penetration test. Instead of running multiple tools manually, Phantom aggregates all the information you need in one clean, real-time interface.
+Phantom automates the **passive reconnaissance phase** of a penetration test. Instead of running multiple tools manually, Phantom aggregates everything in one real-time interface.
 
 ---
 
-## Features
+## ⚡ Features
 
-### Domain Recon
-- WHOIS lookup — registrar, dates, country
-- DNS records — A, MX, TXT, NS
-- Subdomain enumeration via crt.sh
-- HTTP headers analysis
-- SSL/TLS certificate analysis — version, expiry, cipher, SANs
+**🌐 Domain Recon**
+- WHOIS, DNS records, subdomain enumeration via crt.sh
+- SSL/TLS analysis — version, expiry, cipher, SANs
 - Email spoofing check — SPF, DMARC, DKIM
-- Technology detection — CMS, frameworks, CDN, analytics
-- Automatic risk score (0-100) with detailed findings
+- Technology detection — CMS, frameworks, CDN
+- Automatic risk score (0-100)
 
-### IP Investigation
-- Geolocation — country, city, ISP, timezone
-- Reverse DNS lookup
-- Network info — ASN, organization
-- Interactive map with precise marker
+**📡 IP Investigation**
+- Geolocation, reverse DNS, ASN
+- Interactive map with marker
 
-### Username Lookup
-- Check presence on 20+ platforms simultaneously
-- GitHub, Twitter, Instagram, Reddit, TikTok, HackTheBox, TryHackMe...
+**👤 Username Lookup**
+- 20+ platforms — GitHub, Twitter, Instagram, HackTheBox...
 
-### Email Analysis
-- Format validation
-- MX records verification
-- Provider detection
-- HaveIBeenPwned integration (API key required)
+**📧 Email Analysis**
+- Format validation, MX records, provider detection
 
-### Shodan Integration
-- Open ports and services
-- CVE detection
-- OS fingerprinting
-- Tags and hostnames
+**🔎 Shodan Integration**
+- Open ports, CVEs, OS fingerprinting
 
-### Live Terminal
-- Real-time streaming of scan results
-- Color-coded output
-- Progress bar
-- Auto-redirect to report on completion
+**🖥️ Live Terminal**
+- Real-time streaming, color-coded output, progress bar
 
-### Dashboard
-- Global stats — total scans, avg risk score
-- Risk distribution chart
-- Top detected technologies
-- Full scan history
+**📊 Dashboard**
+- Stats, risk distribution, scan history
 
 ---
 
-## Installation
-
+## 🚀 Installation
+```bash
 git clone https://github.com/Mahmd-75/Phantom.git
 cd Phantom
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python3 app.py
+```
 
-Then open http://127.0.0.1:5000 in your browser.
-
----
-
-## Optional API Keys
-
-Create a .env file in the root directory:
-
-SHODAN_API_KEY=your_shodan_key
-HIBP_API_KEY=your_hibp_key
-
-- Shodan — Free tier available at shodan.io
-- HaveIBeenPwned — Available at haveibeenpwned.com/API/Key
+Open `http://127.0.0.1:5000`
 
 ---
 
-## Tech Stack
+## ⚙️ Optional API Keys
 
-Backend: Python 3, Flask
-DNS: dnspython
-WHOIS: python-whois
-HTTP: requests, BeautifulSoup4
-Shodan: shodan
-Maps: Leaflet.js
-Frontend: HTML, CSS, Vanilla JS
+Create a `.env` file:
+```
+SHODAN_API_KEY=your_key
+HIBP_API_KEY=your_key
+```
 
 ---
 
-## Project Structure
+## 🛠️ Stack
 
-phantom/
-app.py — Flask app + SSE streaming
-modules/
-  domain_recon.py — WHOIS, DNS, subdomains
-  ip_recon.py — Geolocation, reverse DNS
-  username_recon.py — Multi-platform lookup
-  email_recon.py — Email analysis + HIBP
-  shodan_recon.py — Shodan API integration
-  ssl_analysis.py — SSL/TLS certificate analysis
-  email_spoofing.py — SPF/DMARC/DKIM checker
-  tech_detect.py — Technology fingerprinting
-  risk_score.py — Automatic risk scoring
-templates/
-  base.html — Base layout
-  index.html — Dashboard + scan form
-  terminal.html — Live terminal view
-  report.html — Scan report
-  history.html — Scan history
+Python 3 • Flask • dnspython • python-whois • requests • Shodan • Leaflet.js
 
 ---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-This tool is for educational purposes only. Only use Phantom on systems you own or have explicit permission to test. The author is not responsible for any misuse.
+For educational purposes only. Use responsibly and legally.
 
 ---
 
-## Author
+## 👤 Author
 
-Mahmd-75 — Cybersecurity student | Pentest & Offensive Security
-GitHub: https://github.com/Mahmd-75
-LinkedIn: https://linkedin.com/in/mahmoud-el-shetewi
+**Mahmd-75** — Cybersecurity student | Pentest & Offensive Security
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=flat-square&logo=linkedin)](https://linkedin.com/in/mahmoud-el-shetewi)
