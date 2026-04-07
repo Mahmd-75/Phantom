@@ -133,4 +133,4 @@ This tool is for educational purposes only. Only use Phantom on systems you own 
 
 Mahmd-75 — Cybersecurity student | Pentest & Offensive Security
 GitHub: https://github.com/Mahmd-75
-LinkedIn: www.linkedin.com/in/mahmoud-el-shetewi-2a3027331
+LinkedIn: https://linkedin.com/in/mahmoud-el-shetewi
